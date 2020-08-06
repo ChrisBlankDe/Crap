@@ -5,3 +5,10 @@ choco install git.install
 choco install git-credential-manager-for-windows
 choco install notepadplusplus
 choco install 7zip.install
+
+choco install nuget.commandline
+
+choco install docker-cli
+
+choco install azure-cli
+choco install azcopy

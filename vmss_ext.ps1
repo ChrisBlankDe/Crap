@@ -1,9 +1,9 @@
+ $null = mkdir "c:\install" -ErrorAction SilentlyContinue
 Start-Transcript -Path "c:\install\pstranscript.txt" -Append
 function Write-ToLog{
   param($message)
   Write-Host $message
   $logPath = "c:\install\log.txt"
-  $null = mkdir (Split-Path $logPath) -ErrorAction SilentlyContinue
   $message | Out-File -FilePath $logPath -Append
 }
 Write-ToLog "Install Choco"

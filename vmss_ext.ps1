@@ -1,25 +1,28 @@
 clear
+
 $ErrorActionPreference = "Stop"
 $null = mkdir "c:\install" -ErrorAction SilentlyContinue
 Start-Transcript -Path "c:\install\pstranscript.txt" -Append
-
-function Write-ToLog {
-    param($message)
-    Write-Host $message
-    $logPath = "c:\install\log.txt"
-    $message | Out-File -FilePath $logPath -Append
-}
-function Install-ChocoPackage {
-    param($PackageName)
-    if ($packageName -notin (choco list -l -r | % { ($_.split('|'))[0] })) {
-        Write-ToLog "Install $PackageName from Chocolatey"
-        choco install $packageName
+$ScriptBlock = {
+    function Write-ToLog {
+        param($message)
+        Write-Host $message
+        $logPath = "c:\install\log.txt"
+        $message | Out-File -FilePath $logPath -Append
     }
-    else {
-        #Write-ToLog "$PackageName from Chocolatey is aready installed"
+    function Install-ChocoPackage {
+        param($PackageName)
+        if ($packageName -notin (choco list -l -r | % { ($_.split('|'))[0] })) {
+            Write-ToLog "Install $PackageName from Chocolatey"
+            choco install $packageName
+        }
+        else {
+            #Write-ToLog "$PackageName from Chocolatey is aready installed"
+        }
     }
 }
-
+$ScriptBlock | Out-File "C:\install\HelperFunctions.ps1"
+. "C:\install\HelperFunctions.ps1"
 
 if (!(Test-Path "$($env:ProgramData)\chocolatey\choco.exe")) {
     Write-ToLog "Install Choco"
@@ -71,9 +74,25 @@ if (-not(Get-InstalledModule -Name navcontainerhelper -ErrorAction Ignore)) {
     Install-Module navcontainerhelper
 }
 
+$ScriptBlock = {
+    Start-Transcript -Path "c:\install\pstranscript.txt" -Append
+    . "C:\install\HelperFunctions.ps1"
+    Write-ToLog "Pull Generic Image"
+    $BestGenericImage = Get-BestGenericImageName
+    docker pull $BestGenericImage
+    Stop-Transcript
+}
+$ScriptBlock | Out-File "C:\install\reboot.ps1"
 
-Write-ToLog "Pull Generic Image"
-$BestGenericImage = Get-BestGenericImageName
-#docker pull $BestGenericImage
+if (-not(Get-ScheduledTask -TaskName PoShScriptRunner -ErrorAction Ignore)) {
+    Write-ToLog "Schedule Task"
+    $TaskTrigger = (New-ScheduledTaskTrigger -atstartup)
+    $TaskAction = New-ScheduledTaskAction -Execute Powershell.exe -argument "-ExecutionPolicy Bypass -File C:\install\reboot.ps1"
+    $TaskUserID = New-ScheduledTaskPrincipal -UserId System -RunLevel Highest -LogonType ServiceAccount
+    Register-ScheduledTask -Force -TaskName PoShScriptRunner -Action $TaskAction -Principal $TaskUserID -Trigger $TaskTrigger
+}
+
+Write-ToLog "Restart Computer"
+Restart-Computer -Delay 60 -Force
 
 Stop-Transcript

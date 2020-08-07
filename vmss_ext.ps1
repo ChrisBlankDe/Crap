@@ -1,47 +1,79 @@
- $null = mkdir "c:\install" -ErrorAction SilentlyContinue
+clear
+$ErrorActionPreference = "Stop"
+$null = mkdir "c:\install" -ErrorAction SilentlyContinue
 Start-Transcript -Path "c:\install\pstranscript.txt" -Append
-function Write-ToLog{
-  param($message)
-  Write-Host $message
-  $logPath = "c:\install\log.txt"
-  $message | Out-File -FilePath $logPath -Append
+
+function Write-ToLog {
+    param($message)
+    Write-Host $message
+    $logPath = "c:\install\log.txt"
+    $message | Out-File -FilePath $logPath -Append
 }
-Write-ToLog "Install Choco"
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+function Install-ChocoPackage {
+    param($PackageName)
+    if ($packageName -notin (choco list -l -r | % { ($_.split('|'))[0] })) {
+        Write-ToLog "Install $PackageName from Chocolatey"
+        choco install $packageName
+    }
+    else {
+        #Write-ToLog "$PackageName from Chocolatey is aready installed"
+    }
+}
+
+
+if (!(Test-Path "$($env:ProgramData)\chocolatey\choco.exe")) {
+    Write-ToLog "Install Choco"
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+}
 
 Write-ToLog "Set AllowGlobalConfirmation"
 choco feature enable -n allowGlobalConfirmation
 
-Write-ToLog "Install Git"
-choco install git.install
+Install-ChocoPackage -PackageName "git.install"
+Install-ChocoPackage -PackageName "git-credential-manager-for-windows"
+Install-ChocoPackage -PackageName "notepadplusplus"
+Install-ChocoPackage -PackageName "7zip.install"
+Install-ChocoPackage -PackageName "nuget.commandline"
+Install-ChocoPackage -PackageName "azure-cli"
+Install-ChocoPackage -PackageName "azcopy"
+#Install-ChocoPackage -PackageName ""
 
-Write-ToLog "Install Git Cred Helper"
-choco install git-credential-manager-for-windows
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    Write-ToLog "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
+}
 
-Write-ToLog "Install Notepad++"
-choco install notepadplusplus
+if (-not(Get-InstalledModule -Name DockerMsftProvider -ErrorAction Ignore)) {
+    Write-ToLog "Install DockerMsftProvider Module"
+    Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
+}
 
-Write-ToLog "Install 7Zip"
-choco install 7zip.install
+if (-Not(Get-Package -Name docker -ProviderName DockerMsftProvider -ErrorAction Ignore)) {
+    Write-ToLog "Install docker Package"
+    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+}
 
-Write-ToLog "Install Nuget"
-choco install nuget.commandline
+if (-not(Get-PSRepository -Name PSGallery | ? { $_.InstallationPolicy -eq "Trusted" })) {
+    write-ToLog "Set PSGallery as Trusted"
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+}
+if (-not(Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V | ? { $_.State -eq "Enabled" })) {
+    write-ToLog "Enable Microsoft-Hyper-V"
+    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart
+}
+if (-not(Get-WindowsOptionalFeature -Online -FeatureName Containers | ? { $_.State -eq "Enabled" })) {
+    write-ToLog "Enable Containers"
+    Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart
+}
 
-Write-ToLog "Install Azure CLI"
-choco install azure-cli
+if (-not(Get-InstalledModule -Name navcontainerhelper -ErrorAction Ignore)) {
+    Write-ToLog "Install navcontainerhelper"
+    Install-Module navcontainerhelper
+}
 
-Write-ToLog "Install AZCopy"
-choco install azcopy
-
-Write-ToLog "Install Docker"
-Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
-Install-Package -Name docker -ProviderName DockerMsftProvider
-
-Write-ToLog "Install navcontainerhelper"
-Install-Module navcontainerhelper
 
 Write-ToLog "Pull Generic Image"
 $BestGenericImage = Get-BestGenericImageName
-docker pull $BestGenericImage
+#docker pull $BestGenericImage
 
 Stop-Transcript

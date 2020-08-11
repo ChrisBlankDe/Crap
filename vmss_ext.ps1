@@ -100,7 +100,7 @@ if (-not(Get-ScheduledTask -TaskName PoShScriptRunner -ErrorAction Ignore)) {
     $null = Register-ScheduledTask -Force -TaskName PoShScriptRunner -Action $TaskAction -Principal $TaskUserID -Trigger $TaskTrigger
 }
 
-Write-ToLog "Restart Computer"
+Write-ToLog 'Restart Computer'
 
 Restart-Computer -Force
 

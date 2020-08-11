@@ -46,12 +46,12 @@ Install-ChocoPackage -PackageName "azcopy"
 
 
 
-<#
+
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Write-ToLog "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
-
+<#
 if (-not(Get-InstalledModule -Name DockerMsftProvider -ErrorAction Ignore)) {
     Write-ToLog "Install DockerMsftProvider Module"
     Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
@@ -61,11 +61,12 @@ if (-Not(Get-Package -Name docker -ProviderName DockerMsftProvider -ErrorAction 
     Write-ToLog "Install docker Package"
     Install-Package -Name docker -ProviderName DockerMsftProvider -Force
 }
-
+#>
 if (-not(Get-PSRepository -Name PSGallery | ? { $_.InstallationPolicy -eq "Trusted" })) {
     write-ToLog "Set PSGallery as Trusted"
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 }
+<#
 if (-not(Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V | ? { $_.State -eq "Enabled" })) {
     write-ToLog "Enable Microsoft-Hyper-V"
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart

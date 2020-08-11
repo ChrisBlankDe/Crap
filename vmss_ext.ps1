@@ -41,6 +41,9 @@ Install-ChocoPackage -PackageName "azure-cli"
 Install-ChocoPackage -PackageName "azcopy"
 #Install-ChocoPackage -PackageName ""
 
+Write-ToLog "Disabling Server Manager Open At Logon"
+New-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name "DoNotOpenServerManagerAtLogon" -PropertyType "DWORD" -Value "0x1" –Force | Out-Null
+
 <#
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Write-ToLog "Installing NuGet Package Provider"

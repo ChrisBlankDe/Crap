@@ -13,7 +13,7 @@ $ScriptBlock = {
     function Install-ChocoPackage {
         param($PackageName)
         if ($packageName -notin (choco list -l -r | % { ($_.split('|'))[0] })) {
-            Write-ToLog 'Install $PackageName from Chocolatey'
+            Write-ToLog "Install $PackageName from Chocolatey"
             choco install $packageName --no-progress
         }
     }

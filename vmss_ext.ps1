@@ -16,9 +16,6 @@ $ScriptBlock = {
             Write-ToLog "Install $PackageName from Chocolatey"
             choco install $packageName --no-progress
         }
-        else {
-            #Write-ToLog "$PackageName from Chocolatey is aready installed"
-        }
     }
 }
 $ScriptBlock | Out-File "C:\install\HelperFunctions.ps1"
@@ -51,32 +48,10 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Write-ToLog "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
-<#
-if (-not(Get-InstalledModule -Name DockerMsftProvider -ErrorAction Ignore)) {
-    Write-ToLog "Install DockerMsftProvider Module"
-    Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
-}
-
-if (-Not(Get-Package -Name docker -ProviderName DockerMsftProvider -ErrorAction Ignore)) {
-    Write-ToLog "Install docker Package"
-    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
-}
-#>
 if (-not(Get-PSRepository -Name PSGallery | ? { $_.InstallationPolicy -eq "Trusted" })) {
     write-ToLog "Set PSGallery as Trusted"
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 }
-<#
-if (-not(Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V | ? { $_.State -eq "Enabled" })) {
-    write-ToLog "Enable Microsoft-Hyper-V"
-    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All -NoRestart
-}
-if (-not(Get-WindowsOptionalFeature -Online -FeatureName Containers | ? { $_.State -eq "Enabled" })) {
-    write-ToLog "Enable Containers"
-    Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart
-}
-#>
-
 if (-not(Get-InstalledModule -Name bccontainerhelper -ErrorAction Ignore)) {
     Write-ToLog "Install bccontainerhelper"
     Install-Module bccontainerhelper
@@ -95,7 +70,7 @@ $ScriptBlock | Out-File "C:\install\reboot.ps1"
 if (-not(Get-ScheduledTask -TaskName PoShScriptRunner -ErrorAction Ignore)) {
     Write-ToLog "Schedule Task"
     $TaskTrigger = (New-ScheduledTaskTrigger -atstartup)
-    $TaskAction = New-ScheduledTaskAction -Execute Powershell.exe -argument "-ExecutionPolicy Bypass -File C:\install\reboot.ps1"
+    $TaskAction = New-ScheduledTaskAction -Execute Powershell.exe -argument '-ExecutionPolicy Bypass -File C:\install\reboot.ps1'
     $TaskUserID = New-ScheduledTaskPrincipal -UserId System -RunLevel Highest -LogonType ServiceAccount
     $null = Register-ScheduledTask -Force -TaskName PoShScriptRunner -Action $TaskAction -Principal $TaskUserID -Trigger $TaskTrigger
 }

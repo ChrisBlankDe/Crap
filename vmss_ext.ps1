@@ -32,9 +32,9 @@ if (!(Test-Path "$($env:ProgramData)\chocolatey\choco.exe")) {
 Write-ToLog "Set AllowGlobalConfirmation"
 choco feature enable -n allowGlobalConfirmation
 
+Install-ChocoPackage -PackageName "notepadplusplus"
 Install-ChocoPackage -PackageName "git.install"
 Install-ChocoPackage -PackageName "git-credential-manager-for-windows"
-Install-ChocoPackage -PackageName "notepadplusplus"
 Install-ChocoPackage -PackageName "7zip.install"
 Install-ChocoPackage -PackageName "nuget.commandline"
 Install-ChocoPackage -PackageName "azure-cli"

@@ -14,7 +14,7 @@ $ScriptBlock = {
         param($PackageName)
         if ($packageName -notin (choco list -l -r | % { ($_.split('|'))[0] })) {
             Write-ToLog "Install $PackageName from Chocolatey"
-            choco install $packageName
+            choco install $packageName --no-progress
         }
         else {
             #Write-ToLog "$PackageName from Chocolatey is aready installed"

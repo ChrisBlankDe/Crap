@@ -24,6 +24,9 @@ $ScriptBlock = {
 $ScriptBlock | Out-File "C:\install\HelperFunctions.ps1"
 . "C:\install\HelperFunctions.ps1"
 
+Write-ToLog "Disabling Server Manager Open At Logon"
+New-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name "DoNotOpenServerManagerAtLogon" -PropertyType "DWORD" -Value "0x1" –Force | Out-Null
+
 if (!(Test-Path "$($env:ProgramData)\chocolatey\choco.exe")) {
     Write-ToLog "Install Choco"
     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -41,8 +44,7 @@ Install-ChocoPackage -PackageName "azure-cli"
 Install-ChocoPackage -PackageName "azcopy"
 #Install-ChocoPackage -PackageName ""
 
-Write-ToLog "Disabling Server Manager Open At Logon"
-New-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name "DoNotOpenServerManagerAtLogon" -PropertyType "DWORD" -Value "0x1" –Force | Out-Null
+
 
 <#
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {

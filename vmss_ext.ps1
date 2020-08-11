@@ -41,6 +41,7 @@ Install-ChocoPackage -PackageName "azure-cli"
 Install-ChocoPackage -PackageName "azcopy"
 #Install-ChocoPackage -PackageName ""
 
+<#
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Write-ToLog "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
@@ -68,10 +69,11 @@ if (-not(Get-WindowsOptionalFeature -Online -FeatureName Containers | ? { $_.Sta
     write-ToLog "Enable Containers"
     Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart
 }
+#>
 
-if (-not(Get-InstalledModule -Name navcontainerhelper -ErrorAction Ignore)) {
-    Write-ToLog "Install navcontainerhelper"
-    Install-Module navcontainerhelper
+if (-not(Get-InstalledModule -Name bccontainerhelper -ErrorAction Ignore)) {
+    Write-ToLog "Install bccontainerhelper"
+    Install-Module bccontainerhelper
 }
 
 $ScriptBlock = {

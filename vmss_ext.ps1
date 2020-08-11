@@ -77,6 +77,7 @@ if (-not(Get-ScheduledTask -TaskName PoShScriptRunner -ErrorAction Ignore)) {
 
 Write-ToLog 'Restart Computer'
 
-Restart-Computer -Force
+#Restart-Computer -Force
+Shutdown -r -t 60
 
 Stop-Transcript

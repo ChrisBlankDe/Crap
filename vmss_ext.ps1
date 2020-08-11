@@ -97,10 +97,11 @@ if (-not(Get-ScheduledTask -TaskName PoShScriptRunner -ErrorAction Ignore)) {
     $TaskTrigger = (New-ScheduledTaskTrigger -atstartup)
     $TaskAction = New-ScheduledTaskAction -Execute Powershell.exe -argument "-ExecutionPolicy Bypass -File C:\install\reboot.ps1"
     $TaskUserID = New-ScheduledTaskPrincipal -UserId System -RunLevel Highest -LogonType ServiceAccount
-    Register-ScheduledTask -Force -TaskName PoShScriptRunner -Action $TaskAction -Principal $TaskUserID -Trigger $TaskTrigger
+    $null = Register-ScheduledTask -Force -TaskName PoShScriptRunner -Action $TaskAction -Principal $TaskUserID -Trigger $TaskTrigger
 }
 
 Write-ToLog "Restart Computer"
-Restart-Computer -Delay 60 -Force
+
+Restart-Computer -Force
 
 Stop-Transcript

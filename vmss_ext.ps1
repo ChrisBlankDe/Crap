@@ -21,8 +21,8 @@ $ScriptBlock = {
 $ScriptBlock | Out-File 'C:\install\HelperFunctions.ps1'
 . 'C:\install\HelperFunctions.ps1'
 
-Write-ToLog 'Disabling Server Manager Open At Logon'
-New-ItemProperty -Path 'HKCU:\Software\Microsoft\ServerManager' -Name 'DoNotOpenServerManagerAtLogon' -PropertyType 'DWORD' -Value '0x1' -Force | Out-Null
+#Write-ToLog 'Disabling Server Manager Open At Logon'
+#New-ItemProperty -Path 'HKCU:\Software\Microsoft\ServerManager' -Name 'DoNotOpenServerManagerAtLogon' -PropertyType 'DWORD' -Value '0x1' -Force | Out-Null
 
 if (!(Test-Path "$($env:ProgramData)\chocolatey\choco.exe")) {
     Write-ToLog 'Install Choco'

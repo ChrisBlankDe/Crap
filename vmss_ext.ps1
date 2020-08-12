@@ -41,9 +41,6 @@ Install-ChocoPackage -PackageName 'azure-cli'
 Install-ChocoPackage -PackageName 'azcopy'
 #Install-ChocoPackage -PackageName ''
 
-
-
-
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Write-ToLog 'Installing NuGet Package Provider'
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
@@ -60,6 +57,8 @@ if (-not(Get-InstalledModule -Name bccontainerhelper -ErrorAction Ignore)) {
 $ScriptBlock = {
     Start-Transcript -Path 'c:\install\pstranscript.txt' -Append
     . 'C:\install\HelperFunctions.ps1'
+    Write-ToLog 'Flush ContainerHelperCache'
+    Flush-ContainerHelperCache -cache bcartifacts -keepDays 8
     Write-ToLog 'Pull Generic Image'
     $BestGenericImage = Get-BestGenericImageName
     docker pull $BestGenericImage

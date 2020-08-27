@@ -60,8 +60,8 @@ $ScriptBlock = {
     Write-ToLog 'Flush ContainerHelperCache'
     Flush-ContainerHelperCache -cache bcartifacts -keepDays 8
     Write-ToLog 'Pull Generic Image'
-    $BestGenericImage = Get-BestGenericImageName
-    docker pull $BestGenericImage
+    #$BestGenericImage = Get-BestGenericImageName
+    #docker pull $BestGenericImage
     Stop-Transcript
 }
 $ScriptBlock | Out-File 'C:\install\reboot.ps1'
@@ -77,6 +77,6 @@ if (-not(Get-ScheduledTask -TaskName PoShScriptRunner -ErrorAction Ignore)) {
 Write-ToLog 'Restart Computer'
 
 #Restart-Computer -Force
-Shutdown -r -t 60
+#Shutdown -r -t 60
 
 Stop-Transcript

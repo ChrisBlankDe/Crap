@@ -32,14 +32,18 @@ if (!(Test-Path "$($env:ProgramData)\chocolatey\choco.exe")) {
 Write-ToLog 'Set AllowGlobalConfirmation'
 choco feature enable -n allowGlobalConfirmation
 
+Install-ChocoPackage -PackageName '7zip.install'
 Install-ChocoPackage -PackageName 'notepadplusplus'
 Install-ChocoPackage -PackageName 'git.install'
 Install-ChocoPackage -PackageName 'git-credential-manager-for-windows'
-Install-ChocoPackage -PackageName '7zip.install'
 Install-ChocoPackage -PackageName 'nuget.commandline'
 Install-ChocoPackage -PackageName 'azure-cli'
 Install-ChocoPackage -PackageName 'azcopy'
 #Install-ChocoPackage -PackageName ''
+
+Write-ToLog 'Installing NuGet Credential Provider'
+#https://github.com/microsoft/artifacts-credprovider#automatic-powershell-script
+iex "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) }"
 
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Write-ToLog 'Installing NuGet Package Provider'
@@ -54,14 +58,21 @@ if (-not(Get-InstalledModule -Name bccontainerhelper -ErrorAction Ignore)) {
     Install-Module bccontainerhelper
 }
 
+Write-ToLog 'Pull Generic Image'
+$BestGenericImage = Get-BestGenericImageName
+docker pull $BestGenericImage
+
 $ScriptBlock = {
     Start-Transcript -Path 'c:\install\pstranscript.txt' -Append
     . 'C:\install\HelperFunctions.ps1'
     Write-ToLog 'Flush ContainerHelperCache'
     Flush-ContainerHelperCache -cache bcartifacts -keepDays 8
     Write-ToLog 'Pull Generic Image'
-    #$BestGenericImage = Get-BestGenericImageName
-    #docker pull $BestGenericImage
+    $BestGenericImage = Get-BestGenericImageName
+    docker pull $BestGenericImage
+    
+    Write-ToLog 'Prune Docker Images'
+    docker image prune -f
     Stop-Transcript
 }
 $ScriptBlock | Out-File 'C:\install\reboot.ps1'

@@ -39,6 +39,9 @@ Install-ChocoPackage -PackageName 'git-credential-manager-for-windows'
 Install-ChocoPackage -PackageName 'nuget.commandline'
 Install-ChocoPackage -PackageName 'azure-cli'
 Install-ChocoPackage -PackageName 'azcopy'
+Install-ChocoPackage -PackageName 'docker-engine'
+Install-ChocoPackage -PackageName 'dotnet'
+Install-ChocoPackage -PackageName 'dotnet-sdk'
 #Install-ChocoPackage -PackageName ''
 
 Write-ToLog 'Installing NuGet Credential Provider'
@@ -53,14 +56,38 @@ if (-not(Get-PSRepository -Name PSGallery | ? { $_.InstallationPolicy -eq 'Trust
     write-ToLog 'Set PSGallery as Trusted'
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 }
-if (-not(Get-InstalledModule -Name bccontainerhelper -ErrorAction Ignore)) {
-    Write-ToLog 'Install bccontainerhelper'
-    Install-Module bccontainerhelper
+$ModuleNames = @('bccontainerhelper','D365BcAppHelper','PnP.PowerShell','Microsoft.PowerShell.Archive','JiraPS','Az.Storage') 
+foreach($ModuleName in $ModuleNames){
+    if (-not(Get-InstalledModule -Name $ModuleName -ErrorAction Ignore)) {
+        Write-ToLog "Install $ModuleName"
+        Install-Module $ModuleName
+    }
 }
+
+Write-ToLog 'Preload Artifacts'
+Get-BCArtifactUrl -type OnPrem -country w1 | %{Download-Artifacts -artifactUrl $_ -includePlatform}
+Get-BCArtifactUrl -type OnPrem -country de | %{Download-Artifacts -artifactUrl $_ -includePlatform}
+Get-BCArtifactUrl -type Sandbox -country base -select Weekly | %{Download-Artifacts -artifactUrl $_ -includePlatform}
+Get-BCArtifactUrl -type Sandbox -country de -select Weekly | %{Download-Artifacts -artifactUrl $_ -includePlatform}
 
 Write-ToLog 'Pull Generic Image'
 $BestGenericImage = Get-BestGenericImageName
 docker pull $BestGenericImage
+
+Write-ToLog 'Install AzureSignTool'
+dotnet tool install --global AzureSignTool --version 3.0.0
+$ASTDir ="c:\AzureSignTool"
+mkdir $ASTDir  -ErrorAction SilentlyContinue
+cd $ASTDir
+copy-item -Path "$env:USERPROFILE\.dotnet\tools\*" -Destination $ASTDir -Recurse
+
+Write-ToLog 'Register NavSip'
+if(-not (Test-Path C:\Windows\System32\navsip.dll)){
+    $LocalArtifacts= Get-BCArtifactUrl -country base -select Weekly -type Sandbox | %{Download-Artifacts -artifactUrl $_ -includePlatform}
+    $TargetFile = "C:\Windows\System32\NavSip.dll"
+    $LocalArtifacts[1] | gci -Filter $(split-path $TargetFile -Leaf) -Recurse| select -First 1 | Copy-Item -Destination $(split-path $TargetFile -Parent)
+    RegSvr32 /s $TargetFile
+}
 
 $ScriptBlock = {
     Start-Transcript -Path 'c:\install\pstranscript.txt' -Append
